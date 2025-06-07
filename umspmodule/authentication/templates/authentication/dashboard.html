@@ -1,0 +1,509 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Dashboard - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2" id="user-greeting">Welcome back!</h2>
+                            <p class="text-muted mb-0" id="user-email"></p>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <a href="{% url 'profile' %}" class="btn btn-primary">
+                                <i class="fas fa-user-edit me-2"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <span>Security Status</span>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush" id="security-status-list">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Email Verification</span>
+                            <span id="email-verified-badge" class="badge bg-warning">Checking...</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Password Strength</span>
+                            <span id="password-strength-badge" class="badge bg-warning">Checking...</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Two-Factor Authentication</span>
+                            <span id="2fa-badge" class="badge bg-danger">Not Enabled</span>
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{% url 'settings' %}" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-cog me-2"></i>Security Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-history me-2"></i>
+                    <span>Recent Activity</span>
+                </div>
+                <div class="card-body" id="recent-activity-container">
+                    <div class="text-center py-4" id="activity-loading">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted small mt-2">Loading activity...</p>
+                    </div>
+                    <ul class="list-group list-group-flush" id="activity-list" style="display: none;">
+                        <!-- Activity items will be loaded here -->
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary w-100" id="view-all-activity">
+                            <i class="fas fa-list me-2"></i>View All Activity
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    <span>Quick Actions</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-id-card me-2"></i>Update Profile
+                        </a>
+                        <a href="{% url 'settings' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                        <a href="#" class="btn btn-outline-primary" id="generate-api-token-btn">
+                            <i class="fas fa-code me-2"></i>Generate API Token
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-danger" id="logout-btn">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-user-shield me-2"></i>
+                    <span>Active Sessions</span>
+                </div>
+                <div class="card-body" id="sessions-container">
+                    <div class="text-center py-4" id="sessions-loading">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted small mt-2">Loading sessions...</p>
+                    </div>
+                    <div class="table-responsive" id="sessions-table-container" style="display: none;">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Device</th>
+                                    <th>IP Address</th>
+                                    <th>Last Activity</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-table-body">
+                                <!-- Sessions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center d-none" id="no-sessions">
+                        <p class="text-muted mb-0">No active sessions found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Token Modal -->
+<div class="modal fade" id="apiTokenModal" tabindex="-1" aria-labelledby="apiTokenModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="apiTokenModalLabel">Your API Token</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> This token provides access to your account. Keep it secret!
+                </div>
+                <p class="mb-2">Access Token:</p>
+                <div class="token-text mb-3" id="access-token-display"></div>
+                
+                <p class="mb-2">Refresh Token:</p>
+                <div class="token-text" id="refresh-token-display"></div>
+                
+                <div class="mt-3">
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        The access token expires in 15 minutes. The refresh token can be used to get a new access token.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="copy-token-btn">
+                    <i class="fas fa-copy me-2"></i>Copy Tokens
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to logout?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-logout-btn">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const userGreeting = document.getElementById('user-greeting');
+        const userEmail = document.getElementById('user-email');
+        const emailVerifiedBadge = document.getElementById('email-verified-badge');
+        const passwordStrengthBadge = document.getElementById('password-strength-badge');
+        const activityLoading = document.getElementById('activity-loading');
+        const activityList = document.getElementById('activity-list');
+        const sessionsLoading = document.getElementById('sessions-loading');
+        const sessionsTableContainer = document.getElementById('sessions-table-container');
+        const sessionsTableBody = document.getElementById('sessions-table-body');
+        const noSessions = document.getElementById('no-sessions');
+        const generateApiTokenBtn = document.getElementById('generate-api-token-btn');
+        const accessTokenDisplay = document.getElementById('access-token-display');
+        const refreshTokenDisplay = document.getElementById('refresh-token-display');
+        const copyTokenBtn = document.getElementById('copy-token-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const confirmLogoutBtn = document.getElementById('confirm-logout-btn');
+        
+        // Initialize Bootstrap modals
+        const apiTokenModal = new bootstrap.Modal(document.getElementById('apiTokenModal'));
+        const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+        
+        // Check authentication and redirect if not logged in
+        const tokens = getTokens();
+        if (!tokens.access || isTokenExpired(tokens.access) && (!tokens.refresh || isTokenExpired(tokens.refresh))) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+        
+        // Load user data
+        async function loadUserData() {
+            try {
+                const response = await authFetch('/api/auth/users/me/');
+                
+                if (response && response.ok) {
+                    const userData = await response.json();
+                    
+                    // Update user greeting
+                    userGreeting.textContent = `Welcome back, ${userData.first_name}!`;
+                    userEmail.textContent = userData.email;
+                    
+                    // Update security status
+                    if (userData.email_verified) {
+                        emailVerifiedBadge.textContent = 'Verified';
+                        emailVerifiedBadge.classList.replace('bg-warning', 'bg-success');
+                    } else {
+                        emailVerifiedBadge.textContent = 'Not Verified';
+                        emailVerifiedBadge.classList.replace('bg-warning', 'bg-danger');
+                    }
+                    
+                    // Simulate password strength check
+                    const passwordStrength = Math.floor(Math.random() * 3); // 0-2
+                    if (passwordStrength === 0) {
+                        passwordStrengthBadge.textContent = 'Weak';
+                        passwordStrengthBadge.classList.replace('bg-warning', 'bg-danger');
+                    } else if (passwordStrength === 1) {
+                        passwordStrengthBadge.textContent = 'Medium';
+                        passwordStrengthBadge.classList.replace('bg-warning', 'bg-warning');
+                    } else {
+                        passwordStrengthBadge.textContent = 'Strong';
+                        passwordStrengthBadge.classList.replace('bg-warning', 'bg-success');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        // Load login history
+        async function loadLoginHistory() {
+            try {
+                const response = await authFetch('/api/auth/login-history/');
+                
+                if (response && response.ok) {
+                    const historyData = await response.json();
+                    
+                    // Hide loading indicator
+                    activityLoading.style.display = 'none';
+                    
+                    if (historyData.results && historyData.results.length > 0) {
+                        // Show only the last 5 logins
+                        const recentLogins = historyData.results.slice(0, 5);
+                        
+                        // Clear and populate activity list
+                        activityList.innerHTML = '';
+                        
+                        recentLogins.forEach(login => {
+                            const loginDate = new Date(login.login_datetime);
+                            const timeAgo = getTimeAgo(loginDate);
+                            
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list-group-item';
+                            listItem.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-sign-in-alt text-${login.success ? 'success' : 'danger'} me-2"></i>
+                                        <small>${login.success ? 'Login' : 'Failed login'} from ${login.device_type || 'Unknown device'}</small>
+                                    </div>
+                                    <small class="text-muted">${timeAgo}</small>
+                                </div>
+                                <div class="small text-muted mt-1">IP: ${login.ip_address || 'Unknown'}</div>
+                            `;
+                            
+                            activityList.appendChild(listItem);
+                        });
+                        
+                        // Show the activity list
+                        activityList.style.display = 'block';
+                    } else {
+                        activityList.innerHTML = '<li class="list-group-item text-center text-muted">No recent activity</li>';
+                        activityList.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading login history:', error);
+                activityLoading.style.display = 'none';
+                activityList.innerHTML = '<li class="list-group-item text-center text-muted">Failed to load activity</li>';
+                activityList.style.display = 'block';
+            }
+        }
+        
+        // Simulate loading active sessions
+        function loadActiveSessions() {
+            // Sample data for demonstration
+            const sessions = [
+                {
+                    device: 'Chrome on Windows',
+                    ip: '192.168.1.1',
+                    last_activity: new Date(),
+                    location: 'New York, USA',
+                    status: 'Current Session'
+                },
+                {
+                    device: 'Safari on iPhone',
+                    ip: '192.168.1.2',
+                    last_activity: new Date(Date.now() - 86400000), // 1 day ago
+                    location: 'Los Angeles, USA',
+                    status: 'Active'
+                }
+            ];
+            
+            setTimeout(() => {
+                // Hide loading indicator
+                sessionsLoading.style.display = 'none';
+                
+                if (sessions.length > 0) {
+                    // Clear and populate sessions table
+                    sessionsTableBody.innerHTML = '';
+                    
+                    sessions.forEach(session => {
+                        const timeAgo = getTimeAgo(session.last_activity);
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <i class="fas fa-${session.device.includes('iPhone') ? 'mobile-alt' : 'desktop'} me-2"></i>
+                                ${session.device}
+                            </td>
+                            <td>${session.ip}</td>
+                            <td>${timeAgo}</td>
+                            <td>${session.location}</td>
+                            <td>
+                                <span class="badge ${session.status === 'Current Session' ? 'bg-primary' : 'bg-success'}">${session.status}</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger ${session.status === 'Current Session' ? 'disabled' : ''}" 
+                                        ${session.status === 'Current Session' ? 'disabled' : ''}>
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </td>
+                        `;
+                        
+                        sessionsTableBody.appendChild(row);
+                    });
+                    
+                    // Show the sessions table
+                    sessionsTableContainer.style.display = 'block';
+                } else {
+                    noSessions.classList.remove('d-none');
+                }
+            }, 1000);
+        }
+        
+        // Time ago formatter
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) {
+                return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) {
+                return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) {
+                return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) {
+                return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) {
+                return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            return "Just now";
+        }
+        
+        // API Token generation
+        generateApiTokenBtn.addEventListener('click', function() {
+            const tokens = getTokens();
+            
+            if (tokens.access && tokens.refresh) {
+                accessTokenDisplay.textContent = tokens.access;
+                refreshTokenDisplay.textContent = tokens.refresh;
+                apiTokenModal.show();
+            } else {
+                alert('No active tokens found. Please login again.');
+                window.location.href = "{% url 'login' %}";
+            }
+        });
+        
+        // Copy tokens to clipboard
+        copyTokenBtn.addEventListener('click', function() {
+            const tokenText = `Access Token: ${accessTokenDisplay.textContent}\nRefresh Token: ${refreshTokenDisplay.textContent}`;
+            
+            navigator.clipboard.writeText(tokenText)
+                .then(() => {
+                    this.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-copy me-2"></i>Copy Tokens';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy tokens');
+                });
+        });
+        
+        // Logout button
+        logoutBtn.addEventListener('click', function() {
+            logoutModal.show();
+        });
+        
+        // Confirm logout
+        confirmLogoutBtn.addEventListener('click', async function() {
+            try {
+                showLoading();
+                
+                const tokens = getTokens();
+                
+                if (tokens.refresh) {
+                    const response = await fetch('/api/auth/logout/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${tokens.access}`
+                        },
+                        body: JSON.stringify({
+                            refresh: tokens.refresh
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        clearTokens();
+                        window.location.href = "{% url 'login' %}";
+                    } else {
+                        // If logout API fails, still clear tokens and redirect
+                        clearTokens();
+                        window.location.href = "{% url 'login' %}";
+                    }
+                } else {
+                    clearTokens();
+                    window.location.href = "{% url 'login' %}";
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                // If error occurs, still clear tokens and redirect
+                clearTokens();
+                window.location.href = "{% url 'login' %}";
+            } finally {
+                hideLoading();
+                logoutModal.hide();
+            }
+        });
+        
+        // Load all data
+        loadUserData();
+        loadLoginHistory();
+        loadActiveSessions();
+    });
+</script>
+{% endblock %}

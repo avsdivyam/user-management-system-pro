@@ -1,0 +1,667 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Settings - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center">
+            <i class="fas fa-cog me-2"></i>
+            <span>Account Settings</span>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-tab-pane" 
+                            type="button" role="tab" aria-controls="security-tab-pane" aria-selected="true">
+                        <i class="fas fa-shield-alt me-2"></i>Security
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications-tab-pane" 
+                            type="button" role="tab" aria-controls="notifications-tab-pane" aria-selected="false">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="privacy-tab" data-bs-toggle="tab" data-bs-target="#privacy-tab-pane" 
+                            type="button" role="tab" aria-controls="privacy-tab-pane" aria-selected="false">
+                        <i class="fas fa-user-shield me-2"></i>Privacy
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="danger-tab" data-bs-toggle="tab" data-bs-target="#danger-tab-pane" 
+                            type="button" role="tab" aria-controls="danger-tab-pane" aria-selected="false">
+                        <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Danger Zone
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content pt-4" id="settingsTabsContent">
+                <!-- Security Tab -->
+                <div class="tab-pane fade show active" id="security-tab-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="0">
+                    <div id="security-alert" class="alert d-none" role="alert"></div>
+                    
+                    <!-- Password Change Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Change Password</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="password-form" class="needs-validation" novalidate>
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="current_password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">Please enter your current password.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="password" class="form-control" id="new_password" name="new_password" required 
+                                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new_password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Password must be at least 8 characters and include uppercase, lowercase, number and special character.
+                                    </div>
+                                    <div class="form-text">
+                                        Must be at least 8 characters with uppercase, lowercase, number and special character.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm_password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">Passwords do not match.</div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Two-Factor Authentication -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Two-Factor Authentication</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-1"><strong>Status:</strong> <span class="badge bg-danger">Not Enabled</span></p>
+                                    <p class="text-muted mb-0 small">Add an extra layer of security to your account by enabling two-factor authentication.</p>
+                                </div>
+                                <button class="btn btn-success" id="enable-2fa-btn">
+                                    <i class="fas fa-shield-alt me-2"></i>Enable
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Login History -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Login Activity</h5>
+                            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div id="login-history-loading" class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted small mt-2 mb-0">Loading login history...</p>
+                            </div>
+                            <div id="login-history-container" style="display: none;">
+                                <div class="list-group" id="login-history-list">
+                                    <!-- Login history items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications Tab -->
+                <div class="tab-pane fade" id="notifications-tab-pane" role="tabpanel" aria-labelledby="notifications-tab" tabindex="0">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notification Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="notifications-form">
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Email Notifications</h6>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="security_alerts" checked>
+                                        <label class="form-check-label" for="security_alerts">Security alerts</label>
+                                        <div class="form-text">Receive alerts about suspicious login attempts and security issues</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="system_updates" checked>
+                                        <label class="form-check-label" for="system_updates">System updates</label>
+                                        <div class="form-text">Receive notifications about new features and system updates</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="marketing_emails">
+                                        <label class="form-check-label" for="marketing_emails">Marketing emails</label>
+                                        <div class="form-text">Receive promotional and marketing messages</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Preferences
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Tab -->
+                <div class="tab-pane fade" id="privacy-tab-pane" role="tabpanel" aria-labelledby="privacy-tab" tabindex="0">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Privacy Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="privacy-form">
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Data Sharing</h6>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="data_analytics" checked>
+                                        <label class="form-check-label" for="data_analytics">Allow anonymous usage data collection</label>
+                                        <div class="form-text">Help us improve by allowing anonymous usage data collection</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="third_party_sharing">
+                                        <label class="form-check-label" for="third_party_sharing">Share data with third parties</label>
+                                        <div class="form-text">Allow your data to be shared with our trusted partners</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Cookies & Tracking</h6>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="essential_cookies" checked disabled>
+                                        <label class="form-check-label" for="essential_cookies">Essential cookies</label>
+                                        <div class="form-text">These cookies are required for the system to function properly</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="performance_cookies" checked>
+                                        <label class="form-check-label" for="performance_cookies">Performance & analytics cookies</label>
+                                        <div class="form-text">Help us improve performance by collecting anonymous usage data</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="marketing_cookies">
+                                        <label class="form-check-label" for="marketing_cookies">Marketing & advertising cookies</label>
+                                        <div class="form-text">Allow personalized marketing based on your browsing habits</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Privacy Settings
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <hr>
+                            
+                            <div class="mt-3">
+                                <h6>Your Data</h6>
+                                <p class="text-muted small">You can download or delete all your data from our systems.</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download me-1"></i>Download My Data
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteDataModal">
+                                        <i class="fas fa-trash-alt me-1"></i>Delete My Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Danger Zone Tab -->
+                <div class="tab-pane fade" id="danger-tab-pane" role="tabpanel" aria-labelledby="danger-tab" tabindex="0">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">Danger Zone</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> The actions in this section can't be undone. Please proceed with caution.
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6>Session Management</h6>
+                                <p class="text-muted small">Log out of all devices except your current one.</p>
+                                <button class="btn btn-warning" id="logout-all-btn">
+                                    <i class="fas fa-power-off me-2"></i>Log Out All Other Devices
+                                </button>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="mb-4">
+                                <h6>Account Deactivation</h6>
+                                <p class="text-muted small">Temporarily deactivate your account. You can reactivate it at any time by logging in again.</p>
+                                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                                    <i class="fas fa-user-slash me-2"></i>Deactivate Account
+                                </button>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div>
+                                <h6>Account Deletion</h6>
+                                <p class="text-muted small">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                    <i class="fas fa-trash-alt me-2"></i>Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Data Modal -->
+<div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteDataModalLabel">Delete My Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete all your data? This will remove all personal information, preferences, and activity history, but will keep your account active.</p>
+                <p>This action cannot be undone.</p>
+                <div class="mb-3">
+                    <label for="delete-data-password" class="form-label">Please enter your password to confirm:</label>
+                    <input type="password" class="form-control" id="delete-data-password" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-data-btn">
+                    <i class="fas fa-trash-alt me-2"></i>Delete My Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Account Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deactivateModalLabel">Deactivate Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to deactivate your account?</p>
+                <p>Your account will be disabled temporarily and you won't appear in the system to other users. You can reactivate at any time by logging in again.</p>
+                <div class="mb-3">
+                    <label for="deactivate-password" class="form-label">Please enter your password to confirm:</label>
+                    <input type="password" class="form-control" id="deactivate-password" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirm-deactivate-btn">
+                    <i class="fas fa-user-slash me-2"></i>Deactivate Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to permanently delete your account? This will erase all data associated with your account and cannot be recovered.</p>
+                <div class="mb-3">
+                    <label for="delete-account-password" class="form-label">Please enter your password to confirm:</label>
+                    <input type="password" class="form-control" id="delete-account-password" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="delete-confirm-checkbox" required>
+                    <label class="form-check-label" for="delete-confirm-checkbox">
+                        I understand that this will permanently delete my account and all associated data.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-account-btn" disabled>
+                    <i class="fas fa-trash-alt me-2"></i>Delete Account Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2FA Setup Modal -->
+<div class="modal fade" id="twoFAModal" tabindex="-1" aria-labelledby="twoFAModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="twoFAModalLabel">Set Up Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Two-factor authentication adds an extra layer of security to your account.
+                </div>
+                
+                <div class="text-center mb-3">
+                    <img src="https://placeholder.pics/svg/200/DEDEDE/555555/QR%20Code" alt="QR Code" class="img-fluid border p-2">
+                </div>
+                
+                <p>Scan this QR code with your preferred authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).</p>
+                
+                <div class="mb-3">
+                    <label for="auth-code" class="form-label">Enter the 6-digit code from your authenticator app:</label>
+                    <input type="text" class="form-control" id="auth-code" placeholder="000000" maxlength="6" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="verify-2fa-btn">
+                    <i class="fas fa-check me-2"></i>Verify and Enable
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const passwordForm = document.getElementById('password-form');
+        const securityAlert = document.getElementById('security-alert');
+        const newPasswordInput = document.getElementById('new_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const togglePasswordBtns = document.querySelectorAll('.toggle-password');
+        const loginHistoryLoading = document.getElementById('login-history-loading');
+        const loginHistoryContainer = document.getElementById('login-history-container');
+        const loginHistoryList = document.getElementById('login-history-list');
+        const enable2FABtn = document.getElementById('enable-2fa-btn');
+        const deleteConfirmCheckbox = document.getElementById('delete-confirm-checkbox');
+        const confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
+        const logoutAllBtn = document.getElementById('logout-all-btn');
+        
+        // Initialize Bootstrap modals
+        const twoFAModal = new bootstrap.Modal(document.getElementById('twoFAModal'));
+        
+        // Check authentication and redirect if not logged in
+        const tokens = getTokens();
+        if (!tokens.access || isTokenExpired(tokens.access) && (!tokens.refresh || isTokenExpired(tokens.refresh))) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+        
+        // Toggle password visibility
+        togglePasswordBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+        });
+        
+        // Confirm password validation
+        confirmPasswordInput.addEventListener('input', function() {
+            if (newPasswordInput.value !== confirmPasswordInput.value) {
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPasswordInput.setCustomValidity('');
+            }
+        });
+        
+        // Handle password form submission
+        passwordForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Validate password match
+            if (newPasswordInput.value !== confirmPasswordInput.value) {
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPasswordInput.setCustomValidity('');
+            }
+            
+            // Form validation
+            if (!passwordForm.checkValidity()) {
+                event.stopPropagation();
+                passwordForm.classList.add('was-validated');
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const response = await authFetch('/api/auth/users/change_password/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        current_password: document.getElementById('current_password').value,
+                        new_password: newPasswordInput.value,
+                        confirm_password: confirmPasswordInput.value
+                    })
+                });
+                
+                if (response && response.ok) {
+                    // Show success message
+                    securityAlert.textContent = 'Password updated successfully.';
+                    securityAlert.classList.remove('d-none', 'alert-danger');
+                    securityAlert.classList.add('alert-success');
+                    
+                    // Reset form
+                    passwordForm.reset();
+                    passwordForm.classList.remove('was-validated');
+                } else {
+                    const data = await response.json();
+                    securityAlert.textContent = data.detail || 'Failed to update password. Please check your current password and try again.';
+                    securityAlert.classList.remove('d-none', 'alert-success');
+                    securityAlert.classList.add('alert-danger');
+                }
+            } catch (error) {
+                console.error('Error updating password:', error);
+                securityAlert.textContent = 'An error occurred while updating your password. Please try again.';
+                securityAlert.classList.remove('d-none', 'alert-success');
+                securityAlert.classList.add('alert-danger');
+            } finally {
+                hideLoading();
+            }
+        });
+        
+        // Load login history
+        async function loadLoginHistory() {
+            try {
+                const response = await authFetch('/api/auth/login-history/');
+                
+                if (response && response.ok) {
+                    const historyData = await response.json();
+                    
+                    // Hide loading indicator
+                    loginHistoryLoading.style.display = 'none';
+                    
+                    if (historyData.results && historyData.results.length > 0) {
+                        // Show only the last 5 logins
+                        const recentLogins = historyData.results.slice(0, 5);
+                        
+                        // Clear and populate login history list
+                        loginHistoryList.innerHTML = '';
+                        
+                        recentLogins.forEach(login => {
+                            const loginDate = new Date(login.login_datetime);
+                            const timeAgo = getTimeAgo(loginDate);
+                            
+                            const listItem = document.createElement('a');
+                            listItem.href = '#';
+                            listItem.className = 'list-group-item list-group-item-action';
+                            listItem.innerHTML = `
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-${login.success ? 'check text-success' : 'times text-danger'} me-2"></i>
+                                        ${login.success ? 'Successful login' : 'Failed login attempt'}
+                                    </h6>
+                                    <small>${timeAgo}</small>
+                                </div>
+                                <p class="mb-1 small">Device: ${login.device_type || 'Unknown'}</p>
+                                <small class="text-muted">IP: ${login.ip_address || 'Unknown'}</small>
+                            `;
+                            
+                            loginHistoryList.appendChild(listItem);
+                        });
+                        
+                        // Show the login history container
+                        loginHistoryContainer.style.display = 'block';
+                    } else {
+                        loginHistoryList.innerHTML = '<div class="text-center py-3 text-muted">No login history available</div>';
+                        loginHistoryContainer.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading login history:', error);
+                loginHistoryLoading.style.display = 'none';
+                loginHistoryList.innerHTML = '<div class="text-center py-3 text-muted">Failed to load login history</div>';
+                loginHistoryContainer.style.display = 'block';
+            }
+        }
+        
+        // Time ago formatter
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) {
+                return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) {
+                return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) {
+                return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) {
+                return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) {
+                return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            return "Just now";
+        }
+        
+        // Enable 2FA button
+        enable2FABtn.addEventListener('click', function() {
+            twoFAModal.show();
+        });
+        
+        // Delete account checkbox
+        deleteConfirmCheckbox.addEventListener('change', function() {
+            confirmDeleteAccountBtn.disabled = !this.checked;
+        });
+        
+        // Logout all devices button
+        logoutAllBtn.addEventListener('click', async function() {
+            if (confirm('Are you sure you want to log out from all other devices?')) {
+                try {
+                    showLoading();
+                    
+                    const response = await authFetch('/api/auth/logout-all-devices/', {
+                        method: 'POST'
+                    });
+                    
+                    if (response && response.ok) {
+                        securityAlert.textContent = 'Successfully logged out from all other devices.';
+                        securityAlert.classList.remove('d-none', 'alert-danger');
+                        securityAlert.classList.add('alert-success');
+                    } else {
+                        const data = await response.json();
+                        securityAlert.textContent = data.detail || 'Failed to log out from all devices.';
+                        securityAlert.classList.remove('d-none', 'alert-success');
+                        securityAlert.classList.add('alert-danger');
+                    }
+                } catch (error) {
+                    console.error('Error logging out all devices:', error);
+                    securityAlert.textContent = 'An error occurred. Please try again.';
+                    securityAlert.classList.remove('d-none', 'alert-success');
+                    securityAlert.classList.add('alert-danger');
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+        
+        // Load login history
+        loadLoginHistory();
+        
+        // Handle other form submissions with default behavior for demo
+        document.getElementById('notifications-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert('Notification preferences saved successfully!');
+        });
+        
+        document.getElementById('privacy-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert('Privacy settings saved successfully!');
+        });
+    });
+</script>
+{% endblock %}

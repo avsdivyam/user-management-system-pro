@@ -1,0 +1,268 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Register - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <div class="card-header d-flex align-items-center">
+            <i class="fas fa-user-plus me-2"></i>
+            <span>Create an Account</span>
+        </div>
+        <div class="card-body">
+            <div id="register-alert" class="alert alert-danger d-none" role="alert"></div>
+            
+            <form id="register-form" class="needs-validation" novalidate>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="first_name" class="form-label">First Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="invalid-feedback">First name is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                        <div class="invalid-feedback">Last name is required.</div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                    </div>
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                    <div class="form-text">This will be your login username.</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label">Phone Number (optional)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required 
+                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$">
+                        <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback">
+                        Password must be at least 8 characters and include uppercase, lowercase, number and special character.
+                    </div>
+                    <div class="form-text">
+                        Must be at least 8 characters with uppercase, lowercase, number and special character.
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password_confirm" class="form-label">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                    </div>
+                    <div class="invalid-feedback" id="password-match-feedback">Passwords do not match.</div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="terms" required>
+                    <label class="form-check-label" for="terms">
+                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                    </label>
+                    <div class="invalid-feedback">You must agree to the terms and conditions.</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary" id="register-button">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
+                </div>
+            </form>
+            
+            <hr>
+            
+            <div class="text-center">
+                <p>Already have an account?</p>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Acceptance of Terms</h5>
+                <p>
+                    By accessing and using the User Management System Pro, you accept and agree to be bound by the terms and provisions of this agreement.
+                </p>
+                
+                <h5>2. User Account Responsibilities</h5>
+                <p>
+                    You are responsible for maintaining the confidentiality of your account information and password.
+                    You agree to accept responsibility for all activities that occur under your account.
+                </p>
+                
+                <h5>3. Privacy Policy</h5>
+                <p>
+                    Your use of the User Management System Pro is also governed by our Privacy Policy, which is incorporated here by reference.
+                </p>
+                
+                <h5>4. User Conduct</h5>
+                <p>
+                    You agree not to use the system for any illegal or unauthorized purpose.
+                    You agree to comply with all local laws regarding online conduct and acceptable content.
+                </p>
+                
+                <h5>5. Termination of Service</h5>
+                <p>
+                    We reserve the right to terminate or suspend your account at any time without prior notice for conduct that we believe violates these Terms or is harmful to other users of the service, us, or third parties, or for any other reason.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Agree</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const registerForm = document.getElementById('register-form');
+        const registerAlert = document.getElementById('register-alert');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+        const passwordConfirmInput = document.getElementById('password_confirm');
+        
+        // Toggle password visibility
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+        
+        // Check password match
+        passwordConfirmInput.addEventListener('input', function() {
+            if (passwordInput.value !== passwordConfirmInput.value) {
+                passwordConfirmInput.setCustomValidity('Passwords do not match');
+            } else {
+                passwordConfirmInput.setCustomValidity('');
+            }
+        });
+        
+        // Form submission
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Validate password match
+            if (passwordInput.value !== passwordConfirmInput.value) {
+                passwordConfirmInput.setCustomValidity('Passwords do not match');
+            } else {
+                passwordConfirmInput.setCustomValidity('');
+            }
+            
+            // Form validation
+            if (!registerForm.checkValidity()) {
+                event.stopPropagation();
+                registerForm.classList.add('was-validated');
+                return;
+            }
+            
+            // Prepare form data
+            const formData = {
+                email: document.getElementById('email').value,
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                phone_number: document.getElementById('phone_number').value,
+                password: passwordInput.value,
+                password_confirm: passwordConfirmInput.value
+            };
+            
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/auth/users/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(), // Add CSRF token
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                console.log('Registration request sent with data:', formData);
+                const data = await response.json();
+                console.log('Registration response:', response.status, data);
+                
+                if (response.ok) {
+                    // Show success message
+                    registerAlert.textContent = 'Registration successful! Please check your email to verify your account.';
+                    registerAlert.classList.remove('d-none', 'alert-danger');
+                    registerAlert.classList.add('alert-success');
+                    
+                    // Clear form
+                    registerForm.reset();
+                    registerForm.classList.remove('was-validated');
+                    
+                    // Redirect after a delay
+                    setTimeout(() => {
+                        window.location.href = "{% url 'login' %}";
+                    }, 3000);
+                } else {
+                    // Show error messages from API
+                    let errorMessage = 'Registration failed. Please try again.';
+                    
+                    if (typeof data === 'object') {
+                        // Extract error messages
+                        const errors = [];
+                        for (const key in data) {
+                            if (Array.isArray(data[key])) {
+                                errors.push(`${key}: ${data[key].join(' ')}`);
+                            } else if (typeof data[key] === 'string') {
+                                errors.push(`${key}: ${data[key]}`);
+                            }
+                        }
+                        
+                        if (errors.length > 0) {
+                            errorMessage = errors.join('<br>');
+                        }
+                    }
+                    
+                    registerAlert.innerHTML = errorMessage;
+                    registerAlert.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                registerAlert.textContent = 'An error occurred during registration. Please try again.';
+                registerAlert.classList.remove('d-none');
+            } finally {
+                hideLoading();
+            }
+        });
+    });
+</script>
+{% endblock %}

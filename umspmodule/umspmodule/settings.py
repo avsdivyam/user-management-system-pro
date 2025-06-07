@@ -38,19 +38,34 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app', # This is your custom app, ensure it is listed here
-    'rest_framework',  # If you're using Django REST Framework
-    'rest_framework_simplejwt.token_blacklist'
+    'authentication', # New dedicated authentication app
+    'rest_framework',  # Django REST Framework
+    'rest_framework_simplejwt.token_blacklist', # JWT token blacklist
+    'corsheaders', # For handling CORS
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True  # For development only, set to False in production
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Needed to allow JS to access the cookie
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:7575']  # Add your frontend domains
+
+# Frontend URL for email verification links
+FRONTEND_URL = 'http://127.0.0.1:7575'  # Change this in production
 
 ROOT_URLCONF = 'umspmodule.urls'
 
@@ -124,6 +139,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom User Model
+AUTH_USER_MODEL = 'authentication.UserAccount'
+
+# Media files (Uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -131,4 +153,44 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),       # Short-lived token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),          # Longer-lived refresh
+    'ROTATE_REFRESH_TOKENS': True,                        # Get new refresh token on use
+    'BLACKLIST_AFTER_ROTATION': True,                     # Blacklist old refresh tokens
+    'UPDATE_LAST_LOGIN': True,                            # Update last_login field
+    
+    'ALGORITHM': 'HS256',                                 # HMAC with SHA-256
+    'SIGNING_KEY': SECRET_KEY,                            # Same as your Django secret key
+    'VERIFYING_KEY': None,                                # Only used with asymmetric algorithms
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),                     # Authorization: Bearer <token>
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',                                # User ID field in User model
+    'USER_ID_CLAIM': 'user_id',                           # Claim name for user ID in token
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    
+    'JTI_CLAIM': 'jti',                                   # JWT ID claim
+    
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    
+    # Cookie settings if you want to store tokens in cookies
+    'AUTH_COOKIE': 'access_token',                        # Cookie name for access token
+    'AUTH_COOKIE_DOMAIN': None,                           # Domain for cookie
+    'AUTH_COOKIE_SECURE': False,                          # Only send over HTTPS
+    'AUTH_COOKIE_HTTP_ONLY': True,                        # Prevent JavaScript access
+    'AUTH_COOKIE_PATH': '/',                              # Cookie path
+    'AUTH_COOKIE_SAMESITE': 'Lax',                        # Cookie same-site policy
 }

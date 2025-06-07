@@ -16,9 +16,30 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('app.urls')),
+    path('app/', include('app.urls')),
+    
+    # Authentication app UI endpoints
+    path('', include('authentication.urls')),
+    
+    # Authentication app API endpoints
+    path('api/auth/', include('authentication.urls_api')),
+    
+    # JWT refresh and verify endpoints
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # Redirect root to login page
+    path('', RedirectView.as_view(pattern_name='login'), name='home'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

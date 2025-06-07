@@ -1,0 +1,437 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Profile - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-id-card me-2"></i>
+                    <span>User Profile</span>
+                </div>
+                <div class="card-body">
+                    <div id="profile-alert" class="alert d-none" role="alert"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4 mb-md-0">
+                            <div class="position-relative mb-3">
+                                <img id="profile-picture" src="/media/profile_pictures/default.png" 
+                                     class="img-fluid rounded-circle" style="width: 180px; height: 180px; object-fit: cover;" 
+                                     alt="Profile Picture">
+                                <button class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                                        style="width: 40px; height: 40px;" id="change-photo-btn">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                                <input type="file" id="profile-picture-input" accept="image/*" style="display: none;">
+                            </div>
+                            <h5 id="user-name" class="mb-1">Loading...</h5>
+                            <p id="user-email" class="text-muted">Loading...</p>
+                            <div id="email-verified-status">
+                                <span class="badge bg-warning">Checking...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-9">
+                            <form id="profile-form" class="needs-validation" novalidate>
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="first_name" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                        <div class="invalid-feedback">First name is required.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="last_name" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                        <div class="invalid-feedback">Last name is required.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required readonly>
+                                    <div class="form-text">Your email address is also your username.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="bio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="3"></textarea>
+                                </div>
+                                
+                                <hr>
+                                <h5 class="mb-3">Extended Profile Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="city" name="city">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="state" class="form-label">State/Province</label>
+                                        <input type="text" class="form-control" id="state" name="state">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="postal_code" class="form-label">Postal Code</label>
+                                        <input type="text" class="form-control" id="postal_code" name="postal_code">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="country" class="form-label">Country</label>
+                                        <input type="text" class="form-control" id="country" name="country">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="birth_date" class="form-label">Birth Date</label>
+                                    <input type="date" class="form-control" id="birth_date" name="birth_date">
+                                </div>
+                                
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="cancel-btn">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="save-profile-btn">
+                                        <i class="fas fa-save me-1"></i>Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const profileForm = document.getElementById('profile-form');
+        const profileAlert = document.getElementById('profile-alert');
+        const userNameDisplay = document.getElementById('user-name');
+        const userEmailDisplay = document.getElementById('user-email');
+        const emailVerifiedStatus = document.getElementById('email-verified-status');
+        const profilePicture = document.getElementById('profile-picture');
+        const changePhotoBtn = document.getElementById('change-photo-btn');
+        const profilePictureInput = document.getElementById('profile-picture-input');
+        const cancelBtn = document.getElementById('cancel-btn');
+        
+        // Original user data for cancel operation
+        let originalUserData = null;
+        let originalProfileData = null;
+        
+        // Check authentication and redirect if not logged in
+        const tokens = getTokens();
+        if (!tokens.access || isTokenExpired(tokens.access) && (!tokens.refresh || isTokenExpired(tokens.refresh))) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+        
+        // Load user data
+        async function loadUserData() {
+            try {
+                showLoading();
+                
+                // Fetch user data
+                const userResponse = await authFetch('/api/auth/users/me/');
+                
+                if (userResponse && userResponse.ok) {
+                    const userData = await userResponse.json();
+                    originalUserData = { ...userData };
+                    
+                    // Update profile information
+                    document.getElementById('first_name').value = userData.first_name || '';
+                    document.getElementById('last_name').value = userData.last_name || '';
+                    document.getElementById('email').value = userData.email || '';
+                    document.getElementById('phone_number').value = userData.phone_number || '';
+                    document.getElementById('bio').value = userData.bio || '';
+                    
+                    // Update header information
+                    userNameDisplay.textContent = `${userData.first_name} ${userData.last_name}`;
+                    userEmailDisplay.textContent = userData.email;
+                    
+                    // Update email verification status
+                    if (userData.email_verified) {
+                        emailVerifiedStatus.innerHTML = '<span class="badge bg-success">Email Verified</span>';
+                    } else {
+                        emailVerifiedStatus.innerHTML = `
+                            <span class="badge bg-danger">Email Not Verified</span>
+                            <button class="btn btn-sm btn-link p-0 ms-2" id="resend-verification-btn">Resend</button>
+                        `;
+                        
+                        // Add event listener for resend button
+                        const resendBtn = document.getElementById('resend-verification-btn');
+                        if (resendBtn) {
+                            resendBtn.addEventListener('click', resendVerificationEmail);
+                        }
+                    }
+                    
+                    // Update profile picture if available
+                    if (userData.profile_picture) {
+                        profilePicture.src = userData.profile_picture;
+                    }
+                    
+                    // Fetch profile data
+                    return authFetch('/api/auth/profiles/my_profile/');
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                profileAlert.textContent = 'Failed to load user data. Please try again.';
+                profileAlert.classList.remove('d-none', 'alert-success');
+                profileAlert.classList.add('alert-danger');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Handle loading extended profile data
+        async function loadProfileData(profileResponse) {
+            if (profileResponse && profileResponse.ok) {
+                try {
+                    const profileData = await profileResponse.json();
+                    originalProfileData = { ...profileData };
+                    
+                    // Update form with profile data
+                    document.getElementById('address').value = profileData.address || '';
+                    document.getElementById('city').value = profileData.city || '';
+                    document.getElementById('state').value = profileData.state || '';
+                    document.getElementById('postal_code').value = profileData.postal_code || '';
+                    document.getElementById('country').value = profileData.country || '';
+                    
+                    // Format birth date if available
+                    if (profileData.birth_date) {
+                        document.getElementById('birth_date').value = profileData.birth_date;
+                    }
+                } catch (error) {
+                    console.error('Error parsing profile data:', error);
+                }
+            }
+        }
+        
+        // Resend verification email
+        async function resendVerificationEmail() {
+            try {
+                showLoading();
+                
+                const response = await authFetch('/api/auth/users/resend_verification/', {
+                    method: 'POST'
+                });
+                
+                if (response && response.ok) {
+                    profileAlert.textContent = 'Verification email has been sent to your email address.';
+                    profileAlert.classList.remove('d-none', 'alert-danger');
+                    profileAlert.classList.add('alert-success');
+                } else {
+                    const data = await response.json();
+                    profileAlert.textContent = data.detail || 'Failed to send verification email. Please try again.';
+                    profileAlert.classList.remove('d-none', 'alert-success');
+                    profileAlert.classList.add('alert-danger');
+                }
+            } catch (error) {
+                console.error('Error resending verification email:', error);
+                profileAlert.textContent = 'An error occurred. Please try again.';
+                profileAlert.classList.remove('d-none', 'alert-success');
+                profileAlert.classList.add('alert-danger');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Handle profile form submission
+        profileForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Form validation
+            if (!profileForm.checkValidity()) {
+                event.stopPropagation();
+                profileForm.classList.add('was-validated');
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                // Prepare user data
+                const userData = {
+                    first_name: document.getElementById('first_name').value,
+                    last_name: document.getElementById('last_name').value,
+                    phone_number: document.getElementById('phone_number').value,
+                    bio: document.getElementById('bio').value
+                };
+                
+                // Update user data
+                const userResponse = await authFetch('/api/auth/users/me/', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!userResponse || !userResponse.ok) {
+                    const errorData = await userResponse.json();
+                    throw new Error(errorData.detail || 'Failed to update user data');
+                }
+                
+                // Prepare profile data
+                const profileData = {
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    postal_code: document.getElementById('postal_code').value,
+                    country: document.getElementById('country').value,
+                    birth_date: document.getElementById('birth_date').value || null
+                };
+                
+                // Update profile data
+                const profileResponse = await authFetch('/api/auth/profiles/my_profile/', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                
+                if (!profileResponse || !profileResponse.ok) {
+                    const errorData = await profileResponse.json();
+                    throw new Error(errorData.detail || 'Failed to update profile data');
+                }
+                
+                // Show success message
+                profileAlert.textContent = 'Profile updated successfully.';
+                profileAlert.classList.remove('d-none', 'alert-danger');
+                profileAlert.classList.add('alert-success');
+                
+                // Update original data
+                const updatedUserData = await userResponse.json();
+                originalUserData = { ...updatedUserData };
+                
+                const updatedProfileData = await profileResponse.json();
+                originalProfileData = { ...updatedProfileData };
+                
+                // Update display name
+                userNameDisplay.textContent = `${updatedUserData.first_name} ${updatedUserData.last_name}`;
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                profileAlert.textContent = error.message || 'An error occurred while updating your profile. Please try again.';
+                profileAlert.classList.remove('d-none', 'alert-success');
+                profileAlert.classList.add('alert-danger');
+            } finally {
+                hideLoading();
+            }
+        });
+        
+        // Handle profile picture change
+        changePhotoBtn.addEventListener('click', function() {
+            profilePictureInput.click();
+        });
+        
+        // Handle profile picture file selection
+        profilePictureInput.addEventListener('change', async function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Check file type and size
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                
+                if (!validTypes.includes(file.type)) {
+                    profileAlert.textContent = 'Please select a valid image file (JPEG, PNG, or GIF).';
+                    profileAlert.classList.remove('d-none', 'alert-success');
+                    profileAlert.classList.add('alert-danger');
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    profileAlert.textContent = 'Image file is too large. Maximum size is 5MB.';
+                    profileAlert.classList.remove('d-none', 'alert-success');
+                    profileAlert.classList.add('alert-danger');
+                    return;
+                }
+                
+                try {
+                    showLoading();
+                    
+                    // Create FormData
+                    const formData = new FormData();
+                    formData.append('profile_picture', file);
+                    
+                    // Upload profile picture
+                    const response = await authFetch('/api/auth/users/me/', {
+                        method: 'PATCH',
+                        body: formData
+                    });
+                    
+                    if (response && response.ok) {
+                        const data = await response.json();
+                        
+                        // Update profile picture
+                        if (data.profile_picture) {
+                            profilePicture.src = data.profile_picture;
+                        }
+                        
+                        // Show success message
+                        profileAlert.textContent = 'Profile picture updated successfully.';
+                        profileAlert.classList.remove('d-none', 'alert-danger');
+                        profileAlert.classList.add('alert-success');
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Failed to update profile picture');
+                    }
+                } catch (error) {
+                    console.error('Error updating profile picture:', error);
+                    profileAlert.textContent = error.message || 'An error occurred while updating your profile picture. Please try again.';
+                    profileAlert.classList.remove('d-none', 'alert-success');
+                    profileAlert.classList.add('alert-danger');
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+        
+        // Handle cancel button
+        cancelBtn.addEventListener('click', function() {
+            // Reset form with original data
+            if (originalUserData) {
+                document.getElementById('first_name').value = originalUserData.first_name || '';
+                document.getElementById('last_name').value = originalUserData.last_name || '';
+                document.getElementById('phone_number').value = originalUserData.phone_number || '';
+                document.getElementById('bio').value = originalUserData.bio || '';
+            }
+            
+            if (originalProfileData) {
+                document.getElementById('address').value = originalProfileData.address || '';
+                document.getElementById('city').value = originalProfileData.city || '';
+                document.getElementById('state').value = originalProfileData.state || '';
+                document.getElementById('postal_code').value = originalProfileData.postal_code || '';
+                document.getElementById('country').value = originalProfileData.country || '';
+                document.getElementById('birth_date').value = originalProfileData.birth_date || '';
+            }
+            
+            // Reset validation
+            profileForm.classList.remove('was-validated');
+            
+            // Hide any alerts
+            profileAlert.classList.add('d-none');
+        });
+        
+        // Initialize: load user data and profile
+        loadUserData().then(loadProfileData);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Login - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <div class="card-header d-flex align-items-center">
+            <i class="fas fa-sign-in-alt me-2"></i>
+            <span>Login to Your Account</span>
+        </div>
+        <div class="card-body">
+            <div id="login-alert" class="alert alert-danger d-none" role="alert"></div>
+            
+            <form id="login-form" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                    </div>
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback">Password is required.</div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember-me">
+                    <label class="form-check-label" for="remember-me">Remember me</label>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary" id="login-button">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-3 text-center">
+                <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot password?</a>
+            </div>
+            
+            <hr>
+            
+            <div class="text-center">
+                <p>Don't have an account yet?</p>
+                <a href="{% url 'register' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-user-plus me-2"></i>Create an Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        const loginAlert = document.getElementById('login-alert');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+        
+        // Toggle password visibility
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+        
+        // Form submission
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Form validation
+            if (!loginForm.checkValidity()) {
+                event.stopPropagation();
+                loginForm.classList.add('was-validated');
+                return;
+            }
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/auth/token/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(), // Add CSRF token
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store tokens
+                    setTokens(data.access, data.refresh);
+                    
+                    // Show success message briefly
+                    loginAlert.textContent = 'Login successful! Redirecting...';
+                    loginAlert.classList.remove('d-none', 'alert-danger');
+                    loginAlert.classList.add('alert-success');
+                    
+                    // Redirect after successful login
+                    setTimeout(() => {
+                        // Use the redirect URL from the server if available
+                        window.location.href = data.redirect || "{% url 'dashboard' %}";
+                    }, 1000);
+                } else {
+                    // Show error message
+                    loginAlert.textContent = data.detail || 'Invalid credentials. Please try again.';
+                    loginAlert.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                loginAlert.textContent = 'An error occurred during login. Please try again.';
+                loginAlert.classList.remove('d-none');
+            } finally {
+                hideLoading();
+            }
+        });
+    });
+</script>
+{% endblock %}

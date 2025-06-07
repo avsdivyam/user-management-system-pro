@@ -1,0 +1,115 @@
+{% extends 'authentication/base.html' %}
+
+{% block title %}Verify Email - User Management System Pro{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <div class="card-header d-flex align-items-center">
+            <i class="fas fa-envelope-open-text me-2"></i>
+            <span>Email Verification</span>
+        </div>
+        <div class="card-body">
+            <div id="verify-alert" class="alert d-none" role="alert"></div>
+            
+            <div id="verify-loading" class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Verifying your email address...</p>
+            </div>
+            
+            <div id="verify-success" class="text-center d-none">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-3">Email Verified Successfully!</h4>
+                <p>Your email address has been verified. You can now log in to your account.</p>
+                <div class="mt-4">
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                </div>
+            </div>
+            
+            <div id="verify-error" class="text-center d-none">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-3">Verification Failed</h4>
+                <p id="verify-error-message">The verification link is invalid or has expired.</p>
+                <div class="mt-4">
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const verifyAlert = document.getElementById('verify-alert');
+        const verifyLoading = document.getElementById('verify-loading');
+        const verifySuccess = document.getElementById('verify-success');
+        const verifyError = document.getElementById('verify-error');
+        const verifyErrorMessage = document.getElementById('verify-error-message');
+        
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            // No token provided
+            verifyLoading.classList.add('d-none');
+            verifyError.classList.remove('d-none');
+            verifyErrorMessage.textContent = 'No verification token provided. Please check your email for the correct link.';
+            return;
+        }
+        
+        // Verify email with token
+        async function verifyEmail() {
+            try {
+                const response = await fetch('/api/auth/users/verify_email/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(), // Add CSRF token
+                    },
+                    body: JSON.stringify({
+                        token: token
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                verifyLoading.classList.add('d-none');
+                
+                if (response.ok) {
+                    // Show success message
+                    verifySuccess.classList.remove('d-none');
+                } else {
+                    // Show error message
+                    verifyError.classList.remove('d-none');
+                    verifyErrorMessage.textContent = data.detail || 'Email verification failed. The link may be invalid or expired.';
+                }
+            } catch (error) {
+                console.error('Email verification error:', error);
+                verifyLoading.classList.add('d-none');
+                verifyError.classList.remove('d-none');
+                verifyErrorMessage.textContent = 'An error occurred during verification. Please try again later.';
+            }
+        }
+        
+        // Start verification process
+        verifyEmail();
+    });
+</script>
+{% endblock %}
